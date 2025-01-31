@@ -1,0 +1,53 @@
+-- USING WINDOW FUNCTIONS
+SELECT * FROM employee_salary;
+
+SELECT  GENDER, avg(salary) 
+FROM employee_demographics DEM
+JOIN employee_salary SAL
+	ON DEM.employee_id = SAL.employee_id
+  group by GENDER;  
+
+SELECT GENDER, avg(salary) OVER(partition by GENDER) AVG_SALARY
+FROM employee_demographics DEM
+JOIN employee_salary SAL
+	ON DEM.employee_id = SAL.employee_id
+;
+
+SELECT SAL.first_name, SAL.last_name, GENDER, avg(salary) OVER(partition by GENDER)
+FROM employee_demographics DEM
+JOIN employee_salary SAL
+	ON DEM.employee_id = SAL.employee_id
+;
+
+SELECT SAL.first_name, SAL.last_name, GENDER, 
+SUM(salary) OVER(partition by GENDER order by DEM.employee_id) ROLLING_TOTAL
+FROM employee_demographics DEM
+JOIN employee_salary SAL
+	ON DEM.employee_id = SAL.employee_id
+;
+
+SELECT DEM.employee_id, SAL.first_name, SAL.last_name, GENDER, SAL.salary,
+row_number() OVER(partition by GENDER ORDER BY salary DESC) AS ROW_NUM,
+RANK() OVER(PARTITION BY GENDER ORDER BY salary DESC) AS RANK_NUM
+FROM employee_demographics DEM
+JOIN employee_salary SAL
+	ON DEM.employee_id = SAL.employee_id;
+ 
+INSERT INTO employee_demographics (employee_id, first_name, last_name, age, gender, birth_date)
+VALUES
+(13,'Nweze', 'Ifeoma', 44,'Female','1979-09-27');
+
+update employee_demographics
+set age = 44
+where employee_id = 13;
+select * from employee_demographics;
+   
+SELECT DEM.employee_id, SAL.first_name, SAL.last_name, GENDER, SAL.salary,
+ROW_NUMBER() OVER(partition by GENDER ORDER BY salary DESC) AS ROW_NUM,
+RANK() OVER(PARTITION BY GENDER ORDER BY salary DESC) AS RANK_NUM,
+DENSE_RANK() OVER(PARTITION BY GENDER ORDER BY salary DESC) AS DENSE_RANK_NUM
+FROM employee_demographics DEM
+JOIN employee_salary SAL
+	ON DEM.employee_id = SAL.employee_id;
+
+
