@@ -15,7 +15,7 @@ iv. Project-level documentation explaining problems, logic, and insights
 
 ---
 
-## 📁 Projects Included
+##  Projects Included
 
 ### **HR Analytics Project**
 - Uses employee demographic and salary data  
@@ -36,7 +36,7 @@ iv. Project-level documentation explaining problems, logic, and insights
 
 ---
 
-## ⚙️ Tools & SQL Features Used
+##  Tools & SQL Features Used
 
 - **MySQL / PostgreSQL-compatible SQL**
 - Common Table Expressions (CTEs)  
@@ -48,7 +48,7 @@ iv. Project-level documentation explaining problems, logic, and insights
 
 ---
 
-## 💼 Ideal For
+##  Ideal For
 
 These projects demonstrate professional-level SQL skills, ideal for:
 
@@ -59,7 +59,7 @@ These projects demonstrate professional-level SQL skills, ideal for:
 
 ---
 
-## 👩🏽‍💻 About Me
+##  About Me
 
 I’m a data analyst passionate about using SQL to uncover insights and solve real-world problems. This repository is a growing body of work reflecting my technical growth and business thinking.
 
