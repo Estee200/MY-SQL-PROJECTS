@@ -1,0 +1,223 @@
+SELECT * FROM super_store.superstore;
+
+--- Data Transformation and Cleaning
+alter table superstore rename column `Product Name` to Product_Name;
+alter table superstore rename column`ORDER DATE` to Order_Date;
+alter table superstore rename column`SHIP DATE` to Ship_Date;
+alter table superstore rename column`Ship Mode` to Ship_Mode;
+alter table superstore rename column`Customer Name` to Customer_Name;
+alter table superstore rename column`Order ID` to Order_ID;
+
+--- Updating the order date and the Ship date into a date format
+set sql_safe_updates = 0;#
+
+update superstore
+set Order_Date =str_to_date(Order_Date, '%m/%d/%Y');
+update superstore
+set Ship_Date = str_to_date(Ship_date, '%m/%d/%Y');
+
+SELECT * FROM super_store.superstore;
+
+-- Total Revenue  -------------- Q1
+SELECT sum(Sales) Total_Revenue
+FROM superstore;
+
+--- Top 5 Revenue by Product  ----------- Q2
+SELECT Product_Name, 
+concat('#', format(SUM(Sales),2)) AS Total_Revenue
+FROM superstore
+GROUP BY Product_Name
+ORDER BY Total_Revenue DESC
+LIMIT 5;
+
+----- Sales by segment ---------- Q3
+SELECT SEGMENT, 
+Concat('#', format(SUM(SALES), 2)) AS Total_Revenue
+FROM superstore
+GROUP BY SEGMENT
+ORDER BY Total_Revenue;
+
+--- Sales BY Region  ---------- Q4
+SELECT Region, 
+concat('#', format(sum(Sales), 2)) Total_Revenue
+FROM superstore
+group by Region
+order by Total_Revenue desc
+limit 5;
+
+--- Monthly sales trend ---------- Q5
+SELECT
+	date_format(Order_Date, '%Y-%m') AS MONTH,
+	concat('#', format(sum(SALES), 2)) AS Monthly_Revenue
+from superstore
+group by MONTH
+order by MONTH;
+
+--- Sales by Quarter ---------- Q6
+SELECT 
+    year(Order_Date) as Year,
+    quarter(Order_Date) as Quarter,
+    concat('#', format(sum(SALES), 2)) AS Quarterly_Revenue
+FROM superstore
+GROUP BY Year, Quarter
+ORDER BY Year, Quarter;
+
+SELECT Customer_Name, concat('#', format(sum(sales), 0)) as Total_Revenue
+FROM superstore
+group by Customer_Name
+order by sum(sales) desc
+Limit 5;
+
+--- Category Performance ---------- Q7
+SELECT Category, concat('#', format(sum(sales), 0)) as Total_Revenue
+FROM superstore
+group by Category
+order by Total_Revenue desc;
+
+--- Running Total using CTE ----------- Q8
+With MonthlyTotals as
+(
+SELECT 
+	year(Order_Date) AS Year,
+    Month(Order_Date) AS Month,
+  sum(Sales) AS Monthly_Sales
+  from superstore
+  group by Year, Month)
+		select
+  Year,
+  Month,
+    concat('#', format(Monthly_Sales, 2)) as Monthly_Sale,
+     concat('#', format(sum(Monthly_Sales) over
+		(order by Year, Month), 2))
+         AS Running_Total
+FROM MonthlyTotals
+order by Year, Month
+;
+
+--- Running Total ----------- Q9
+select 
+year(Order_Date) as Year,
+month(Order_Date) as Month,
+concat('#', format(sum(sales), 2)) as Monthly_Sales,
+concat('#', format(sum(sum(Sales)) over (order by Year(Order_Date), Month(Order_Date)), 2))as Running_Totals
+from superstore
+group by Year, Month
+order by Year, Month;
+
+---- Month over Month Growth ---------- Q10
+with monthlysales as
+(
+select 
+year(Order_Date) as Year,
+month(Order_Date) as Month,
+sum(sales) as Monthly_sales
+from superstore
+group by Year, Month
+),
+GR as(
+select *,
+	lag(Monthly_sales) over (order by Year, Month) as Prev_Month
+        from monthlysales)
+SELECT
+year,
+month,
+concat('#', format(Monthly_sales, 2)) AS Monthly_sale,
+concat('#', format(prev_Month, 2)) as Prev_Months,
+CONCAT(FORMAT((Monthly_sales - Prev_Month) / Prev_Month * 100, 2), '%') as Growth_Percent,
+    Case 
+    when Prev_Month is null then '_'      
+    when monthly_sales > Prev_Month then 'Grow'
+    when monthly_sales < Prev_Month then 'Decline'
+    else 'No change'
+end as Trend
+		from GR
+        order by year, month
+        limit 5;
+        
+--- Top 3 Product per category ---------- Q11
+select * from superstore;
+
+SELECT * 
+from(
+select
+Product_Name, 
+Category,
+concat('#', format(sum(sales), 2)) as Total_Revenue,
+	rank() over (partition by category order by sum(sales) desc) as Rank_Position
+FROM superstore
+Group by Category, Product_Name) ranked 
+where Rank_Position <= 3;
+
+--- Customer segmentation ---------- Q12
+SELECT 
+CUSTOMER_NAME,
+concat('#', format(SUM(SALES), 2)) AS Total_Revenue,
+	CASE 
+		WHEN sum(sales)> 5000 THEN 'HIGH'
+		WHEN sum(sales) BETWEEN 2000 AND 5000 THEN 'MEDIUM'
+		ELSE 'LOW'
+END AS CUS_SEGMENTATION
+FROM superstore
+GROUP BY CUSTOMER_NAME 
+LIMIT 5;
+
+--- Profitability by category ---------- Q13
+SELECT
+category,
+concat('#', format(sum(sales), 2)) as Total_Revenue,
+concat('#', format(sum(profit),2)) as Total_Profit,
+concat(format(sum(profit)/sum(sales) * 100, 2), '%') as Profit_margin
+from superstore
+group by category
+order by total_profit asc;
+
+--- Customer loyalty ---------- Q13
+SELECT Customer_Name, 
+count(distinct Order_ID) as Total_Order
+from superstore
+group by Customer_Name;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---- Month over Month Growth ---------- long method
+with monthlysales as
+(
+select year(Order_Date) as Year,
+month(Order_Date) as Month,
+sum(sales) as Monthly_sales
+from superstore
+group by Year(Order_Date), Month(Order_Date)
+)
+select Year,
+Month,
+concat('#', format (Monthly_Sales, 2)) as Monthly_sale,
+
+	concat('#', format(lag(Monthly_sales) over 
+		(order by Year, Month), 2)) as Pre_Month,
+        
+	concat(format((Monthly_sales - lag(Monthly_sales) over (order by Year, Month))
+				/
+   lag(Monthly_sales) over (order by Year, Month)
+				* 100, 2), '%')
+                as Growth_Percent,
+    Case 
+    when lag(monthly_sales) over (order by year, month) is null then '_'      
+    when monthly_sales > lag(monthly_sales) over (order by year, month) then 'Grow'
+    when monthly_sales < lag(monthly_sales) over (order by year, month) then 'Decline'
+    else 'No change'
+end as Trend
+		from monthlysales
+        order by year, month;
+
+
