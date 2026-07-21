@@ -178,18 +178,6 @@ from superstore
 group by Customer_Name;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ---- Month over Month Growth ---------- long method
 with monthlysales as
 (
