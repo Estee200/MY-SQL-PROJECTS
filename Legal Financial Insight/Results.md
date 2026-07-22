@@ -1,4 +1,4 @@
-# Results & Insights
+# Results & Data Quality Findings
 
 This document highlights the key SQL queries used to clean, transform, and analyze the legal financial dataset. Each query answers an important business question and provides insights that support financial reporting and decision-making.
 
